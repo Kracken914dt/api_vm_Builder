@@ -26,6 +26,12 @@ class VMBuilder(ABC):
         self._config["region"] = region
         return self
 
+    def peek(self) -> Dict[str, Any]:
+        """Devuelve una referencia al config interno para permitir ajustes del Director.
+        Nota: se usa intencionalmente para inyectar opcionales comunes antes de build().
+        """
+        return self._config
+
     @abstractmethod
     def set_cpu_ram_by_tier(self, tier: str) -> "VMBuilder":
         """Asigna valores de CPU/RAM en función del tier (small/medium/large/etc)."""
@@ -51,5 +57,5 @@ class Director(ABC):
     """Interfaz de un Director."""
 
     @abstractmethod
-    def construct(self, builder: VMBuilder, *, name: str, region: str, tier: str) -> Dict[str, Any]:
+    def construct(self, builder: VMBuilder, *, name: str, region: str, tier: str, **kwargs: Any) -> Dict[str, Any]:
         raise NotImplementedError

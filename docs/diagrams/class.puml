@@ -1,0 +1,118 @@
+@startuml Clase_Arquitectura_General
+title Diagrama de Clases - Arquitectura General
+
+package "API (FastAPI)" {
+  class VMController as "vm_controller" {
+    +create_vm(payload)
+    +build_vm(payload)
+    +update_vm(id, payload)
+    +delete_vm(id)
+  }
+  class AbstractFactoryController as "abstract_factory_controller" {
+    +create_infrastructure(payload)
+  }
+}
+
+package "Servicios" {
+  class VMService {
+    +create_vm(data)
+    +build_vm(data)
+    +update_vm(id, changes)
+    +delete_vm(id)
+    +create_infrastructure(provider, config)
+  }
+  interface VMRepositoryPort
+}
+
+package "Dominio - Patrones" {
+  interface CloudAbstractFactory {
+    +create_virtual_machine(name, config)
+    +create_database(name, config)
+    +create_load_balancer(name, config)
+    +create_storage(name, config)
+  }
+
+  class CloudResourceManager {
+    -factory: CloudAbstractFactory
+    +create_infrastructure(config)
+  }
+
+  abstract class CloudResource {
+    resource_id: str
+    name: str
+    region: str
+    status: ResourceStatus
+    tags: Dict[str,str]
+    +get_resource_type()
+    +get_specs()
+  }
+
+  enum ResourceStatus {
+    CREATING
+    RUNNING
+    STOPPED
+    DELETING
+    ERROR
+  }
+
+  abstract class VirtualMachine extends CloudResource {
+    +start()
+    +stop()
+    +restart()
+    +resize(new_size)
+  }
+  abstract class Database extends CloudResource
+  abstract class LoadBalancer extends CloudResource
+  abstract class Storage extends CloudResource
+}
+
+package "Factories Concretas" {
+  class AWSCloudFactory
+  class AzureCloudFactory
+  class GCPCloudFactory
+  class OracleCloudFactory
+  class OnPremiseCloudFactory
+}
+
+package "Productos Concretos (ejemplos)" {
+  class EC2Instance
+  class AzureVirtualMachine
+  class ComputeEngineInstance
+  class OracleComputeInstance
+  class OnPremiseVirtualMachine
+}
+
+package "Infraestructura" {
+  class InMemoryVMRepository as "Repository"
+  class Logger { +audit_log(...) }
+}
+
+VMController --> VMService
+AbstractFactoryController --> VMService
+VMService ..> VMRepositoryPort
+VMService ..> CloudResourceManager
+CloudResourceManager --> CloudAbstractFactory
+
+CloudAbstractFactory <|.. AWSCloudFactory
+CloudAbstractFactory <|.. AzureCloudFactory
+CloudAbstractFactory <|.. GCPCloudFactory
+CloudAbstractFactory <|.. OracleCloudFactory
+CloudAbstractFactory <|.. OnPremiseCloudFactory
+
+VirtualMachine <|-- EC2Instance
+VirtualMachine <|-- AzureVirtualMachine
+VirtualMachine <|-- ComputeEngineInstance
+VirtualMachine <|-- OracleComputeInstance
+VirtualMachine <|-- OnPremiseVirtualMachine
+
+VMService --> VMRepositoryPort : usa
+VMService --> Logger : audita
+CloudResourceManager --> Logger : audita
+
+note right of VMService
+  build_vm() usa Builder + Director
+  y luego delega la creación
+  a la CloudAbstractFactory
+end note
+
+@enduml

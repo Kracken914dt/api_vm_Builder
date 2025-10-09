@@ -26,6 +26,12 @@ class AWSVMBuilder(VMBuilder):
         return self
 
     def build(self) -> Dict[str, Any]:
+        # Normalizar nombres esperados por la factory
+        if "vpc" in self._config and "vpc_id" not in self._config:
+            self._config["vpc_id"] = self._config.pop("vpc")
+        # opcionales ya pueden venir del director: key_pair, firewall_rules -> security_groups, public_ip
+        if "firewall_rules" in self._config and "security_groups" not in self._config:
+            self._config["security_groups"] = self._config.pop("firewall_rules")
         return dict(self._config)
 
 
@@ -51,6 +57,16 @@ class AzureVMBuilder(VMBuilder):
         return self
 
     def build(self) -> Dict[str, Any]:
+        # Normalizar nombres esperados por la factory
+        if "vnet" in self._config and "virtual_network" not in self._config:
+            self._config["virtual_network"] = self._config.pop("vnet")
+        if "nsg" in self._config and "network_security_group" not in self._config:
+            self._config["network_security_group"] = self._config.pop("nsg")
+        # Mapear firewall_rules si fuese enviado a un NSG simbólico
+        if "firewall_rules" in self._config and "network_security_group" not in self._config:
+            self._config["network_security_group"] = "nsg-generated"
+        if "public_ip" in self._config:
+            self._config.setdefault("assign_public_ip", self._config["public_ip"])  # indicador
         return dict(self._config)
 
 
@@ -78,6 +94,7 @@ class GCPVMBuilder(VMBuilder):
         return self
 
     def build(self) -> Dict[str, Any]:
+        # Aceptar opcionales comunes sin renombrar; la factory/Producto puede ignorarlos
         return dict(self._config)
 
 

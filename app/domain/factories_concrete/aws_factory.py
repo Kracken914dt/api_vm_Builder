@@ -42,6 +42,14 @@ class AWSCloudFactory(CloudAbstractFactory):
             vm.security_groups = vm_config["security_groups"]
         if "key_pair" in vm_config:
             vm.key_pair = vm_config["key_pair"]
+        # Flags informativos
+        if vm_config.get("public_ip"):
+            vm.public_ip = "54.0.0.1"  # simulado
+        # Anotaciones didácticas
+        if "vcpus" in vm_config:
+            vm.tags["vcpus"] = str(vm_config["vcpus"])
+        if "memory_gb" in vm_config:
+            vm.tags["memory_gb"] = str(vm_config["memory_gb"])
         
         print(f"🏭 AWS Factory: Created EC2 Instance {name} ({vm_config['instance_type']})")
         return vm

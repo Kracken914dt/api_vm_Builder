@@ -42,6 +42,12 @@ class AzureCloudFactory(CloudAbstractFactory):
             vm.virtual_network = vm_config["virtual_network"]
         if "network_security_group" in vm_config:
             vm.network_security_group = vm_config["network_security_group"]
+        if vm_config.get("public_ip"):
+            vm.public_ip = "40.0.0.1"  # simulado
+        if "vcpus" in vm_config:
+            vm.tags["vcpus"] = str(vm_config["vcpus"])
+        if "memory_gb" in vm_config:
+            vm.tags["memory_gb"] = str(vm_config["memory_gb"])
         
         print(f"🏭 Azure Factory: Created VM {name} ({vm_config['vm_size']})")
         return vm

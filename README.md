@@ -24,22 +24,32 @@ Request (VMBuildRequest):
   "name": "web-01",
   "provider": "aws|azure|gcp|onpremise|oracle",
   "region": "<region>",
-  "tier": "small|medium|large|xlarge"
+  "tier": "small|medium|large|xlarge",
+  "profile": "general|memory|compute",               // opcional, default: general
+  "key_pair_name": "default-key",                    // opcional
+  "firewall_rules": ["HTTP", "SSH"],                 // opcional
+  "public_ip": true,                                   // opcional
+  "memory_optimization": true,                         // opcional
+  "disk_optimization": false,                          // opcional
+  "storage_iops": 3000                                 // opcional (didáctico)
 }
 ```
 
 Notas importantes:
 - Para este endpoint el proveedor on-premise se expresa como `onpremise` (coincide con `ProviderEnum`).
-- El Director decide el “tier” y cada Builder lo traduce al campo/tamaño del proveedor:
+- El Director decide el “tier” y opcionalmente el “profile” (general/memory/compute), y cada Builder lo traduce al campo/tamaño del proveedor:
   - AWS → `instance_type` (p. ej., t3.micro)
   - Azure → `vm_size` (p. ej., Standard_B1s)
   - GCP → `machine_type` (p. ej., e2-micro)
   - OnPrem → `cpu`, `ram_gb` numéricos
   - Oracle → `compute_shape` (p. ej., VM.Standard2.1)
+  Además, el Director agrega al config `vcpus` y `memory_gb` como anotaciones didácticas para reflejar los obligatorios del PDF.
+
+
 
 Ejemplos rápidos (PowerShell/curl):
 
-AWS (small)
+AWS (small, con opcionales)
 ```powershell
 curl -X POST "http://localhost:8000/vm/build" `
      -H "Content-Type: application/json" `
@@ -47,7 +57,12 @@ curl -X POST "http://localhost:8000/vm/build" `
            "name": "aws-web-01",
            "provider": "aws",
            "region": "us-east-1",
-           "tier": "small"
+           "tier": "small",
+           "key_pair_name": "default-key",
+           "firewall_rules": ["HTTP", "SSH"],
+           "public_ip": true,
+           "memory_optimization": true,
+           "disk_optimization": false
          }'
 ```
 
@@ -59,7 +74,10 @@ curl -X POST "http://localhost:8000/vm/build" `
            "name": "az-app-01",
            "provider": "azure",
            "region": "eastus",
-           "tier": "medium"
+           "tier": "medium",
+           "profile": "general",
+           "firewall_rules": ["HTTP", "SSH"],
+           "public_ip": true
          }'
 ```
 
@@ -72,6 +90,33 @@ curl -X POST "http://localhost:8000/vm/build" `
            "provider": "onpremise",
            "region": "datacenter-1",
            "tier": "large"
+         }'
+```
+
+GCP (xlarge)
+```powershell
+curl -X POST "http://localhost:8000/vm/build" `
+     -H "Content-Type: application/json" `
+     -d '{
+           "name": "gcp-svc-01",
+           "provider": "gcp",
+           "region": "us-central1",
+           "tier": "xlarge",
+           "profile": "compute"
+         }'
+```
+
+Oracle (medium)
+```powershell
+curl -X POST "http://localhost:8000/vm/build" `
+     -H "Content-Type: application/json" `
+     -d '{
+           "name": "oci-app-01",
+           "provider": "oracle",
+           "region": "us-ashburn-1",
+           "tier": "medium",
+           "profile": "general",
+           "public_ip": true
          }'
 ```
 
@@ -89,7 +134,16 @@ Respuesta esperada (`VMResponse`):
 }
 ```
 
-Logs de auditoría: `Backend/logs/audit.log` (JSON por línea).
+Logs de auditoría: `logs/audit.log` (JSON por línea).
+
+#### Cumplimiento del PDF (obligatorios/opcionales)
+
+- Obligatorios (Builder/Director):
+  - provider, region, tier → requeridos en `VMBuildRequest`.
+  - vcpus, memoryGB → anotados en el config como `vcpus` y `memory_gb` según el tier.
+- Opcionales soportados por `VMBuildRequest` y propagados a factories/productos:
+  - `key_pair_name` (AWS → `key_pair`), `firewall_rules` (AWS → `security_groups`, Azure → `network_security_group` simbólico), `public_ip` (marca y simula asignación), `memory_optimization`, `disk_optimization`, `storage_iops` (didáctico).
+  - `profile` (general|memory|compute) para reflejar familias del PDF.
 
 ## ✅ **IMPLEMENTACIÓN COMPLETA - ABSTRACT FACTORY**
 
@@ -201,7 +255,7 @@ Una vez iniciado el servidor, visita:
 
 1) Arranca el servidor (ver pasos arriba).
 2) Llama al endpoint `/vm/build` con uno de los ejemplos de arriba.
-3) Verifica el resultado en `/vm` (lista de VMs) y revisa los logs en `Backend/logs/audit.log`.
+3) Verifica el resultado en `/vm` (lista de VMs) y revisa los logs en `logs/audit.log`.
 
 ## 🔥 Ejemplos de Uso - Abstract Factory
 

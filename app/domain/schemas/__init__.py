@@ -7,6 +7,7 @@ from .common import (
 	VMListResponse,
 	VMBuildRequest,
 	VMTier,
+	VMProfile,
 )
 from .create_requests import VMCreateRequest
 from .aws import AWSParams

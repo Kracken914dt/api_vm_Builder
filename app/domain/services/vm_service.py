@@ -100,6 +100,13 @@ class VMService:
                 name=data.name,
                 region=data.region,
                 tier=data.tier.value,
+                profile=data.profile,
+                key_pair_name=data.key_pair_name,
+                firewall_rules=data.firewall_rules,
+                public_ip=data.public_ip,
+                memory_optimization=data.memory_optimization,
+                disk_optimization=data.disk_optimization,
+                storage_iops=data.storage_iops,
             )
 
             # Crear con Abstract Factory
