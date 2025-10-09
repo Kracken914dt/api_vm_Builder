@@ -1,0 +1,41 @@
+# Ignorar logs de auditoría y cualquier archivo de logs
+logs/
+logs/**
+Backend/logs/
+Backend/logs/**
+*.log
+
+# Node.js dependencies
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Java
+*.class
+*.jar
+
+# VSCode settings
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build directories
+dist/
+build/
+out/
+
+# Environment files
+.env
+.env.*
+
+# IDE files
+*.iml
+.idea/
+*.swp
