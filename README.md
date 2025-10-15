@@ -718,32 +718,35 @@ La validación es estricta según `provider`. El campo `params` cambia de forma 
 - AWS
 
 ```json
-{
-  "provider": "aws",
-  "name": "mi-vm-aws",
-  "params": {
-    "instance_type": "t2.micro",
-    "region": "us-east-1",
-    "vpc": "vpc-123",
-    "ami": "ami-abc"
-  },
-  "requested_by": "alumno"
-}
+curl -X POST "http://localhost:8000/vm/create" `
+     -H "accept: application/json" `
+     -H "Content-Type: application/json" `
+     -d '{
+           "name": "test-vm-01",
+           "requested_by": "system",
+           "provider": "aws",
+           "params": {
+             "instance_type": "t2.micro",
+             "region": "us-east-1",
+             "vpc_id": "vpc-12345678",
+             "ami": "ami-0abcdef1234567890"
+           }
+         }'
 ```
 
 - Azure
 
 ```json
 {
-  "provider": "azure",
   "name": "mi-vm-azure",
+  "requested_by": "alumno",
+  "provider": "azure",
   "params": {
-    "size": "Standard_B1s",
+    "vm_size": "Standard_B1s",
     "resource_group": "rg1",
     "image": "UbuntuLTS",
-    "vnet": "vnet-01"
-  },
-  "requested_by": "alumno"
+    "region": "eastus"
+  }
 }
 ```
 
